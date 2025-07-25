@@ -1,0 +1,10 @@
+.DS_Store
+.idea*
+*.swp
+*.lvimrc
+*.iml
+.settings
+.project
+.classpath
+.vscode
+.npmrc

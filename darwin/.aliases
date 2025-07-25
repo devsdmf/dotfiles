@@ -1,0 +1,13 @@
+
+# git
+alias gsq='git rebase -i $(git merge-base HEAD master)'
+alias gcb='git_current_branch'
+
+# preview files in command line using bat and fzf
+alias preview="fzf --preview 'bat --color \"always\" {}'"
+
+# replacements
+alias ping='prettyping --nolegend'
+alias top="sudo htop"
+alias du="ncdu --color dark -rr -x --exclude .git --exclude node_modules"
+

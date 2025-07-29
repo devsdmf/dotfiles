@@ -1,4 +1,5 @@
 include setup/darwin/Makefile.in
+include setup/debian/Makefile.in
 
 .title:
 	@echo "devsdmf - dotfiles\n"
@@ -6,3 +7,5 @@ include setup/darwin/Makefile.in
 default: .title
 
 darwin: .title darwin-setup
+
+debian: .title debian-setup

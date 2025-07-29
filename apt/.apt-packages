@@ -1,0 +1,64 @@
+# shell essentials
+zsh
+tmux
+git
+coreutils
+libssl-dev
+wget
+curl
+tree
+cmake
+make
+texinfo
+ninja-build
+gettext
+vim
+
+# tools
+prettyping
+htop
+ncdu
+fzf
+jq
+
+# security key requirements
+openssh-client
+openssh-server
+libfido2-dev
+gnupg
+
+# development tools
+gcc
+llvm
+nodejs
+npm
+yarn
+php
+python3
+python3-pip
+openjdk-17-jdk
+ant
+maven
+docker.io
+docker-compose
+
+# neovim dependencies
+fd-find
+ripgrep
+libtree-sitter-dev
+
+# terminal emulator
+alacritty
+
+# additional linux-specific packages
+software-properties-common
+apt-transport-https
+ca-certificates
+gnupg-agent
+unzip
+zip
+build-essential
+pkg-config
+libtool
+autoconf
+automake

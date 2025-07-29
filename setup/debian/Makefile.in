@@ -1,0 +1,182 @@
+SETUP_DIR = "$(shell pwd)/setup/debian"
+LOG_FILE := "/tmp/debian-setup.log"
+TEMP_DIR := "/tmp/dotfiles-debian-setup"
+FONTS_TEMP_DIR := "$(TEMP_DIR)/terminal-fonts"
+NEOVIM_TEMP_DIR := "$(TEMP_DIR)/neovim"
+
+.PHONY: debian-pre-setup build-essential apt-update install-stow stow apt-packages terminus-font tmux-tpm tmux-plugins oh-my-zsh zsh-theme zsh-restore neovim debian-complete debian-setup
+
+debian-pre-setup:
+	@echo "Setting up dotfiles for Debian/Ubuntu (debian)"
+	@echo "writing log files to ${LOG_FILE}...\n"
+
+build-essential:
+	@echo "Checking if build-essential is installed"
+	@if dpkg -l | grep -q build-essential; then \
+		echo "✓ build-essential already installed"; \
+	else \
+		echo "Installing build-essential..."; \
+		echo "Build tools installation output is being logged to $(LOG_FILE)"; \
+		sudo apt-get install -y build-essential >> $(LOG_FILE) 2>&1; \
+		echo "✓ build-essential installed successfully"; \
+	fi
+
+apt-update:
+	@echo "Updating package lists..."
+	@echo "APT update output is being logged to $(LOG_FILE)"
+	@sudo apt-get update >> $(LOG_FILE) 2>&1
+	@echo "✓ Package lists updated successfully"
+
+install-stow:
+	@echo "Checking if stow is installed"
+	@if command -v stow >/dev/null 2>&1; then \
+		echo "✓ stow already installed at $$(command -v stow)"; \
+	else \
+		echo "Installing stow via APT..."; \
+		sudo apt-get install -y stow; \
+		echo "✓ stow installed successfully"; \
+	fi
+
+stow:
+	@echo "Stowing dotfiles directories..."
+	@stow -t $(HOME) alacritty linux gitconfig apt nvim tmux vim zsh
+	@echo "✓ Dotfiles stowed successfully"
+
+apt-packages:
+	@echo "Checking for APT packages to install"
+	@if [ -f ~/.apt-packages ]; then \
+		echo "✓ .apt-packages found in home directory"; \
+		echo "Installing packages from .apt-packages..."; \
+		echo "Package installation output is being logged to $(LOG_FILE)"; \
+		sudo apt-get install -y $$(cat ~/.apt-packages | tr '\n' ' ') >> $(LOG_FILE) 2>&1; \
+		echo "✓ APT packages installed successfully"; \
+	else \
+		echo "✗ No .apt-packages found in home directory"; \
+		echo "Skipping APT package installation"; \
+	fi
+
+terminus-font:
+	@echo "Checking if Terminus fonts are installed"
+	@if ls ~/.local/share/fonts/*Terminus* >/dev/null 2>&1; then \
+		echo "✓ Terminus fonts already installed"; \
+		ls ~/.local/share/fonts/*Terminus* | wc -l | xargs echo "Found" | sed 's/$$/ font files/'; \
+	else \
+		echo "Installing Terminus fonts"; \
+		mkdir -p $(FONTS_TEMP_DIR); \
+		mkdir -p ~/.local/share/fonts; \
+		echo "Extracting terminus-font.zip from setup/resources..."; \
+		cp setup/resources/terminus-font.zip $(FONTS_TEMP_DIR)/; \
+		cd $(FONTS_TEMP_DIR) && unzip -q terminus-font.zip; \
+		echo "Installing TTF fonts to ~/.local/share/fonts..."; \
+		find $(FONTS_TEMP_DIR) -name "*.ttf" -exec cp {} ~/.local/share/fonts/ \;; \
+		echo "Refreshing font cache..."; \
+		fc-cache -fv >> $(LOG_FILE) 2>&1; \
+		echo "✓ Terminus fonts installed successfully"; \
+		echo "Cleaning up temporary files..."; \
+		rm -rf $(FONTS_TEMP_DIR); \
+	fi
+
+tmux-tpm:
+	@echo "Checking if TMUX Plugin Manager is installed"
+	@if [ -d ~/.tmux/plugins/tpm ]; then \
+		echo "✓ TMUX Plugin Manager already installed"; \
+	else \
+		echo "Installing TMUX Plugin Manager..."; \
+		mkdir -p ~/.tmux/plugins; \
+		git clone https://github.com/tmux-plugins/tpm ~/.tmux/plugins/tpm; \
+		echo "✓ TMUX Plugin Manager installed successfully"; \
+	fi
+	@echo "Refreshing tmux environment..."
+	@tmux source ~/.tmux.conf || echo "Note: tmux not running or config not found"
+
+tmux-plugins:
+	@echo "Installing tmux plugins..."
+	@if [ -f ~/.tmux/plugins/tpm/bin/install_plugins ]; then \
+		sh ~/.tmux/plugins/tpm/bin/install_plugins; \
+		echo "✓ tmux plugins installed successfully"; \
+	else \
+		echo "✗ TPM install script not found. Make sure tmux-tpm target ran successfully"; \
+		exit 1; \
+	fi
+
+oh-my-zsh:
+	@echo "Checking if Oh My Zsh is installed"
+	@if [ -d ~/.oh-my-zsh ]; then \
+		echo "✓ Oh My Zsh already installed"; \
+	else \
+		echo "Installing Oh My Zsh..."; \
+		sh -c "$$(curl -fsSL https://raw.github.com/ohmyzsh/ohmyzsh/master/tools/install.sh)" "" --unattended; \
+		echo "✓ Oh My Zsh installed successfully"; \
+	fi
+
+zsh-theme:
+	@echo "Checking if custom zsh theme is installed"
+	@if [ -f ~/.oh-my-zsh/themes/devsdmf.zsh-theme ]; then \
+		echo "✓ Custom zsh theme already installed"; \
+	else \
+		echo "Installing custom zsh theme..."; \
+		curl -fsSL https://raw.githubusercontent.com/devsdmf/zsh-theme/master/devsdmf.zsh-theme -o ~/.oh-my-zsh/themes/devsdmf.zsh-theme; \
+		echo "✓ Custom zsh theme installed successfully"; \
+	fi
+
+zsh-restore:
+	@echo "Checking for Oh My Zsh backup file"
+	@if [ -f ~/.zshrc.pre-oh-my-zsh ]; then \
+		echo "✓ Found Oh My Zsh backup file"; \
+		echo "Restoring original .zshrc from backup..."; \
+		mv ~/.zshrc.pre-oh-my-zsh ~/.zshrc; \
+		echo "✓ Original .zshrc restored successfully"; \
+	else \
+		echo "✗ No Oh My Zsh backup file found"; \
+		echo "Skipping .zshrc restoration"; \
+	fi
+
+neovim:
+	@echo "Checking if NeoVim is installed"
+	@if command -v nvim >/dev/null 2>&1; then \
+		echo "✓ NeoVim already installed at $$(command -v nvim)"; \
+		nvim --version | head -1; \
+	else \
+		echo "Installing NeoVim from source"; \
+		mkdir -p $(NEOVIM_TEMP_DIR); \
+		echo "Cloning NeoVim repository..."; \
+		git clone https://github.com/neovim/neovim $(NEOVIM_TEMP_DIR) >> $(LOG_FILE) 2>&1; \
+		cd $(NEOVIM_TEMP_DIR) && git checkout stable >> $(LOG_FILE) 2>&1; \
+		echo "Building NeoVim (this may take a while)..."; \
+		echo "Build output is being logged to $(LOG_FILE)"; \
+		cd $(NEOVIM_TEMP_DIR) && make CMAKE_BUILD_TYPE=RelWithDebInfo >> $(LOG_FILE) 2>&1; \
+		echo "Installing NeoVim (may require sudo password)..."; \
+		cd $(NEOVIM_TEMP_DIR) && sudo make install >> $(LOG_FILE) 2>&1; \
+		echo "✓ NeoVim installed successfully"; \
+		echo "Cleaning up temporary files..."; \
+		sudo rm -rf $(NEOVIM_TEMP_DIR) >> $(LOG_FILE) 2>&1; \
+	fi
+	@echo "Creating NeoVim data directory"
+	@mkdir -p ~/.local/share/nvim
+	@echo "✓ NeoVim setup complete"
+
+debian-complete:
+	@echo ""
+	@echo "🎉 Debian/Ubuntu dotfiles setup completed successfully!"
+	@echo ""
+	@echo "Summary of what was installed/configured:"
+	@echo "  ✓ Build essential tools"
+	@echo "  ✓ Package lists updated"
+	@echo "  ✓ GNU Stow for dotfiles management"
+	@echo "  ✓ Dotfiles symlinked to home directory"
+	@echo "  ✓ APT packages (if .apt-packages exists)"
+	@echo "  ✓ Terminus fonts"
+	@echo "  ✓ TMUX Plugin Manager"
+	@echo "  ✓ TMUX plugins"
+	@echo "  ✓ Oh My Zsh framework"
+	@echo "  ✓ Custom zsh theme"
+	@echo "  ✓ Zsh configuration restored"
+	@echo "  ✓ NeoVim editor"
+	@echo ""
+	@echo "Next steps:"
+	@echo "  • Restart your terminal or run: source ~/.zshrc"
+	@echo "  • Check the log file for details: $(LOG_FILE)"
+	@echo "  • Enjoy your new development environment! 🚀"
+	@echo ""
+
+debian-setup: debian-pre-setup build-essential apt-update install-stow stow apt-packages terminus-font tmux-tpm tmux-plugins oh-my-zsh zsh-theme zsh-restore neovim debian-complete

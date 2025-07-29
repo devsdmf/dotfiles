@@ -1,0 +1,189 @@
+SETUP_DIR = "$(shell pwd)/setup/darwin"
+LOG_FILE := "/tmp/darwin-setup.log"
+TEMP_DIR := "/tmp/dotfiles-darwin-setup"
+FONTS_TEMP_DIR := "$(TEMP_DIR)/terminal-fonts"
+NEOVIM_TEMP_DIR := "$(TEMP_DIR)/neovim"
+
+GIT_BIN = $(shell which git)
+
+.PHONY: darwin-pre-setup xcode homebrew install-stow stow homebrew-packages terminus-font tmux-tpm tmux-plugins oh-my-zsh zsh-theme zsh-restore neovim darwin-complete darwin-setup
+
+darwin-pre-setup:
+	@echo "Setting up dotfiles for macOS (darwin)"
+	@echo "writing log files to ${LOG_FILE}...\n"
+
+xcode:
+	@echo "Checking if xcode-select is installed"
+	@if command -v xcode-select >/dev/null 2>&1; then \
+		echo "✓ xcode-select found at $$(command -v xcode-select)"; \
+		echo "Installing Xcode command line tools if needed..."; \
+		echo "Xcode installation output is being logged to $(LOG_FILE)"; \
+		xcode-select --install >> $(LOG_FILE) 2>&1 || echo "Xcode command line tools already installed"; \
+	else \
+		echo "✗ xcode-select not found"; \
+		echo "Please install Xcode from the App Store or run: xcode-select --install"; \
+		exit 1; \
+	fi
+
+homebrew:
+	@echo "Checking if Homebrew is installed"
+	@if command -v brew >/dev/null 2>&1; then \
+		echo "✓ Homebrew found at $$(command -v brew)"; \
+		echo "Updating Homebrew..."; \
+		brew update; \
+	else \
+		echo "✗ Homebrew not found"; \
+		echo "Installing Homebrew..."; \
+		/bin/bash -c "$$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"; \
+	fi
+
+install-stow:
+	@echo "Checking if stow is installed"
+	@if command -v stow >/dev/null 2>&1; then \
+		echo "✓ stow already installed at $$(command -v stow)"; \
+	else \
+		echo "Installing stow via Homebrew..."; \
+		brew install stow; \
+		echo "✓ stow installed successfully"; \
+	fi
+
+stow:
+	@echo "Stowing dotfiles directories..."
+	@stow -t $(HOME) alacritty darwin gitconfig homebrew nvim tmux vim zsh
+	@echo "✓ Dotfiles stowed successfully"
+
+homebrew-packages:
+	@echo "Checking for Homebrew packages to install"
+	@if [ -f ~/.Brewfile ]; then \
+		echo "✓ .Brewfile found in home directory"; \
+		echo "Installing packages from .Brewfile..."; \
+		echo "Package installation output is being logged to $(LOG_FILE)"; \
+		brew bundle --global >> $(LOG_FILE) 2>&1; \
+		echo "✓ Homebrew packages installed successfully"; \
+	else \
+		echo "✗ No .Brewfile found in home directory"; \
+		echo "Skipping Homebrew package installation"; \
+	fi
+
+terminus-font:
+	@echo "Checking if Terminus fonts are installed"
+	@if ls ~/Library/Fonts/*Terminess* >/dev/null 2>&1; then \
+		echo "✓ Terminus fonts already installed"; \
+		ls ~/Library/Fonts/*Terminess* | wc -l | xargs echo "Found" | sed 's/$$/ font files/'; \
+	else \
+		echo "Installing Terminus fonts"; \
+		mkdir -p $(FONTS_TEMP_DIR); \
+		echo "Extracting terminus-font.zip from setup/resources..."; \
+		cp setup/resources/terminus-font.zip $(FONTS_TEMP_DIR)/; \
+		cd $(FONTS_TEMP_DIR) && unzip -q terminus-font.zip; \
+		echo "Installing TTF fonts to ~/Library/Fonts..."; \
+		find $(FONTS_TEMP_DIR) -name "*.ttf" -exec cp {} ~/Library/Fonts/ \;; \
+		echo "✓ Terminus fonts installed successfully"; \
+		echo "Cleaning up temporary files..."; \
+		rm -rf $(FONTS_TEMP_DIR); \
+	fi
+
+tmux-tpm:
+	@echo "Checking if TMUX Plugin Manager is installed"
+	@if [ -d ~/.tmux/plugins/tpm ]; then \
+		echo "✓ TMUX Plugin Manager already installed"; \
+	else \
+		echo "Installing TMUX Plugin Manager..."; \
+		mkdir -p ~/.tmux/plugins; \
+		git clone https://github.com/tmux-plugins/tpm ~/.tmux/plugins/tpm; \
+		echo "✓ TMUX Plugin Manager installed successfully"; \
+	fi
+	@echo "Refreshing tmux environment..."
+	@tmux source ~/.tmux.conf || echo "Note: tmux not running or config not found"
+
+tmux-plugins:
+	@echo "Installing tmux plugins..."
+	@if [ -f ~/.tmux/plugins/tpm/bin/install_plugins ]; then \
+		sh ~/.tmux/plugins/tpm/bin/install_plugins; \
+		echo "✓ tmux plugins installed successfully"; \
+	else \
+		echo "✗ TPM install script not found. Make sure tmux-tpm target ran successfully"; \
+		exit 1; \
+	fi
+
+oh-my-zsh:
+	@echo "Checking if Oh My Zsh is installed"
+	@if [ -d ~/.oh-my-zsh ]; then \
+		echo "✓ Oh My Zsh already installed"; \
+	else \
+		echo "Installing Oh My Zsh..."; \
+		sh -c "$$(curl -fsSL https://raw.github.com/ohmyzsh/ohmyzsh/master/tools/install.sh)" "" --unattended; \
+		echo "✓ Oh My Zsh installed successfully"; \
+	fi
+
+zsh-theme:
+	@echo "Checking if custom zsh theme is installed"
+	@if [ -f ~/.oh-my-zsh/themes/devsdmf.zsh-theme ]; then \
+		echo "✓ Custom zsh theme already installed"; \
+	else \
+		echo "Installing custom zsh theme..."; \
+		curl -fsSL https://raw.githubusercontent.com/devsdmf/zsh-theme/master/devsdmf.zsh-theme -o ~/.oh-my-zsh/themes/devsdmf.zsh-theme; \
+		echo "✓ Custom zsh theme installed successfully"; \
+	fi
+
+zsh-restore:
+	@echo "Checking for Oh My Zsh backup file"
+	@if [ -f ~/.zshrc.pre-oh-my-zsh ]; then \
+		echo "✓ Found Oh My Zsh backup file"; \
+		echo "Restoring original .zshrc from backup..."; \
+		mv ~/.zshrc.pre-oh-my-zsh ~/.zshrc; \
+		echo "✓ Original .zshrc restored successfully"; \
+	else \
+		echo "✗ No Oh My Zsh backup file found"; \
+		echo "Skipping .zshrc restoration"; \
+	fi
+
+neovim:
+	@echo "Checking if NeoVim is installed"
+	@if command -v nvim >/dev/null 2>&1; then \
+		echo "✓ NeoVim already installed at $$(command -v nvim)"; \
+		nvim --version | head -1; \
+	else \
+		echo "Installing NeoVim from source"; \
+		mkdir -p $(NEOVIM_TEMP_DIR); \
+		echo "Cloning NeoVim repository..."; \
+		git clone https://github.com/neovim/neovim $(NEOVIM_TEMP_DIR) >> $(LOG_FILE) 2>&1; \
+		cd $(NEOVIM_TEMP_DIR) && git checkout stable >> $(LOG_FILE) 2>&1; \
+		echo "Building NeoVim (this may take a while)..."; \
+		echo "Build output is being logged to $(LOG_FILE)"; \
+		cd $(NEOVIM_TEMP_DIR) && make CMAKE_BUILD_TYPE=RelWithDebInfo >> $(LOG_FILE) 2>&1; \
+		echo "Installing NeoVim (may require sudo password)..."; \
+		cd $(NEOVIM_TEMP_DIR) && sudo make install >> $(LOG_FILE) 2>&1; \
+		echo "✓ NeoVim installed successfully"; \
+		echo "Cleaning up temporary files..."; \
+		sudo rm -rf $(NEOVIM_TEMP_DIR) >> $(LOG_FILE) 2>&1; \
+	fi
+	@echo "Creating NeoVim data directory"
+	@mkdir -p ~/.local/share/nvim
+	@echo "✓ NeoVim setup complete"
+
+darwin-complete:
+	@echo ""
+	@echo "🎉 macOS dotfiles setup completed successfully!"
+	@echo ""
+	@echo "Summary of what was installed/configured:"
+	@echo "  ✓ Xcode command line tools"
+	@echo "  ✓ Homebrew package manager"
+	@echo "  ✓ GNU Stow for dotfiles management"
+	@echo "  ✓ Dotfiles symlinked to home directory"
+	@echo "  ✓ Homebrew packages (if .Brewfile exists)"
+	@echo "  ✓ Terminus fonts"
+	@echo "  ✓ TMUX Plugin Manager"
+	@echo "  ✓ TMUX plugins"
+	@echo "  ✓ Oh My Zsh framework"
+	@echo "  ✓ Custom zsh theme"
+	@echo "  ✓ Zsh configuration restored"
+	@echo "  ✓ NeoVim editor"
+	@echo ""
+	@echo "Next steps:"
+	@echo "  • Restart your terminal or run: source ~/.zshrc"
+	@echo "  • Check the log file for details: $(LOG_FILE)"
+	@echo "  • Enjoy your new development environment! 🚀"
+	@echo ""
+
+darwin-setup: darwin-pre-setup xcode homebrew install-stow stow homebrew-packages terminus-font tmux-tpm tmux-plugins oh-my-zsh zsh-theme zsh-restore neovim darwin-complete

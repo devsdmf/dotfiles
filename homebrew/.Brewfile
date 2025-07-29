@@ -46,3 +46,5 @@ cask "docker"
 brew "fd"
 brew "ripgrep"
 brew "tree-sitter"
+
+cask "alacritty"

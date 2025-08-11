@@ -41,6 +41,7 @@ brew "openjdk@17"
 brew "ant"
 brew "maven"
 cask "docker"
+brew "uv"
 
 # neovim dependencies
 brew "fd"

@@ -4,13 +4,13 @@ TEMP_DIR := "/tmp/dotfiles-debian-setup"
 FONTS_TEMP_DIR := "$(TEMP_DIR)/terminal-fonts"
 NEOVIM_TEMP_DIR := "$(TEMP_DIR)/neovim"
 
-.PHONY: debian-pre-setup build-essential apt-update install-stow stow apt-packages terminus-font tmux-tpm tmux-plugins oh-my-zsh zsh-theme zsh-restore neovim debian-complete debian-setup
+.PHONY: debian-pre-setup debian-build-essential debian-apt-update debian-install-stow debian-stow debian-apt-packages debian-terminus-font debian-tmux-tpm debian-tmux-plugins debian-oh-my-zsh debian-zsh-theme debian-zsh-restore debian-neovim debian-complete debian-setup
 
 debian-pre-setup:
 	@echo "Setting up dotfiles for Debian/Ubuntu (debian)"
 	@echo "writing log files to ${LOG_FILE}...\n"
 
-build-essential:
+debian-build-essential:
 	@echo "Checking if build-essential is installed"
 	@if dpkg -l | grep -q build-essential; then \
 		echo "✓ build-essential already installed"; \
@@ -21,13 +21,13 @@ build-essential:
 		echo "✓ build-essential installed successfully"; \
 	fi
 
-apt-update:
+debian-apt-update:
 	@echo "Updating package lists..."
 	@echo "APT update output is being logged to $(LOG_FILE)"
 	@sudo apt-get update >> $(LOG_FILE) 2>&1
 	@echo "✓ Package lists updated successfully"
 
-install-stow:
+debian-install-stow:
 	@echo "Checking if stow is installed"
 	@if command -v stow >/dev/null 2>&1; then \
 		echo "✓ stow already installed at $$(command -v stow)"; \
@@ -37,12 +37,12 @@ install-stow:
 		echo "✓ stow installed successfully"; \
 	fi
 
-stow:
+debian-stow:
 	@echo "Stowing dotfiles directories..."
 	@stow -t $(HOME) alacritty linux gitconfig apt nvim tmux vim zsh
 	@echo "✓ Dotfiles stowed successfully"
 
-apt-packages:
+debian-apt-packages:
 	@echo "Checking for APT packages to install"
 	@if [ -f ~/.apt-packages ]; then \
 		echo "✓ .apt-packages found in home directory"; \
@@ -55,7 +55,7 @@ apt-packages:
 		echo "Skipping APT package installation"; \
 	fi
 
-terminus-font:
+debian-terminus-font:
 	@echo "Checking if Terminus fonts are installed"
 	@if ls ~/.local/share/fonts/*Terminus* >/dev/null 2>&1; then \
 		echo "✓ Terminus fonts already installed"; \
@@ -76,7 +76,7 @@ terminus-font:
 		rm -rf $(FONTS_TEMP_DIR); \
 	fi
 
-tmux-tpm:
+debian-tmux-tpm:
 	@echo "Checking if TMUX Plugin Manager is installed"
 	@if [ -d ~/.tmux/plugins/tpm ]; then \
 		echo "✓ TMUX Plugin Manager already installed"; \
@@ -89,17 +89,17 @@ tmux-tpm:
 	@echo "Refreshing tmux environment..."
 	@tmux source ~/.tmux.conf || echo "Note: tmux not running or config not found"
 
-tmux-plugins:
+debian-tmux-plugins:
 	@echo "Installing tmux plugins..."
 	@if [ -f ~/.tmux/plugins/tpm/bin/install_plugins ]; then \
 		sh ~/.tmux/plugins/tpm/bin/install_plugins; \
 		echo "✓ tmux plugins installed successfully"; \
 	else \
-		echo "✗ TPM install script not found. Make sure tmux-tpm target ran successfully"; \
+		echo "✗ TPM install script not found. Make sure debian-tmux-tpm target ran successfully"; \
 		exit 1; \
 	fi
 
-oh-my-zsh:
+debian-oh-my-zsh:
 	@echo "Checking if Oh My Zsh is installed"
 	@if [ -d ~/.oh-my-zsh ]; then \
 		echo "✓ Oh My Zsh already installed"; \
@@ -109,7 +109,7 @@ oh-my-zsh:
 		echo "✓ Oh My Zsh installed successfully"; \
 	fi
 
-zsh-theme:
+debian-zsh-theme:
 	@echo "Checking if custom zsh theme is installed"
 	@if [ -f ~/.oh-my-zsh/themes/devsdmf.zsh-theme ]; then \
 		echo "✓ Custom zsh theme already installed"; \
@@ -119,7 +119,7 @@ zsh-theme:
 		echo "✓ Custom zsh theme installed successfully"; \
 	fi
 
-zsh-restore:
+debian-zsh-restore:
 	@echo "Checking for Oh My Zsh backup file"
 	@if [ -f ~/.zshrc.pre-oh-my-zsh ]; then \
 		echo "✓ Found Oh My Zsh backup file"; \
@@ -131,7 +131,7 @@ zsh-restore:
 		echo "Skipping .zshrc restoration"; \
 	fi
 
-neovim:
+debian-neovim:
 	@echo "Checking if NeoVim is installed"
 	@if command -v nvim >/dev/null 2>&1; then \
 		echo "✓ NeoVim already installed at $$(command -v nvim)"; \
@@ -179,4 +179,4 @@ debian-complete:
 	@echo "  • Enjoy your new development environment! 🚀"
 	@echo ""
 
-debian-setup: debian-pre-setup build-essential apt-update install-stow stow apt-packages terminus-font tmux-tpm tmux-plugins oh-my-zsh zsh-theme zsh-restore neovim debian-complete
+debian-setup: debian-pre-setup debian-build-essential debian-apt-update debian-install-stow debian-stow debian-apt-packages debian-terminus-font debian-tmux-tpm debian-tmux-plugins debian-oh-my-zsh debian-zsh-theme debian-zsh-restore debian-neovim debian-complete

@@ -39,7 +39,7 @@ debian-install-stow:
 
 debian-stow:
 	@echo "Stowing dotfiles directories..."
-	@stow -t $(HOME) alacritty linux gitconfig apt nvim tmux vim zsh
+	@stow -t $(HOME) alacritty-debian linux gitconfig apt nvim tmux vim zsh
 	@echo "✓ Dotfiles stowed successfully"
 
 debian-apt-packages:

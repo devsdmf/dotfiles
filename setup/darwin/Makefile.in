@@ -49,7 +49,7 @@ darwin-install-stow:
 
 darwin-stow:
 	@echo "Stowing dotfiles directories..."
-	@stow -t $(HOME) alacritty darwin gitconfig homebrew nvim tmux vim zsh
+	@stow -t $(HOME) alacritty-darwin darwin gitconfig homebrew nvim tmux vim zsh
 	@echo "✓ Dotfiles stowed successfully"
 
 darwin-homebrew-packages:

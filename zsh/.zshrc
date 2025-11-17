@@ -19,7 +19,11 @@ ZSH_THEME="devsdmf"
 export ZSH_TMUX_AUTOSTART=true
 
 # setting up zsh plugins
-plugins=(git git-prompt tmux)
+if [[ $TERM = 'alacritty' ]]; then
+  plugins=(git git-prompt tmux)
+else
+  plugins=(git git-prompt)
+fi
 
 # starting up zsh
 source $ZSH/oh-my-zsh.sh

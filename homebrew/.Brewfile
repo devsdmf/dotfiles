@@ -42,6 +42,7 @@ brew "ant"
 brew "maven"
 cask "docker"
 brew "uv"
+brew "luajit"
 
 # neovim dependencies
 brew "fd"

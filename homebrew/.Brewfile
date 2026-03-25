@@ -43,6 +43,8 @@ brew "maven"
 cask "docker"
 brew "uv"
 brew "luajit"
+brew "tree-sitter"
+brew "tree-sitter-cli"
 
 # neovim dependencies
 brew "fd"

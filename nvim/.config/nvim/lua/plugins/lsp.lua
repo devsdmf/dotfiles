@@ -11,7 +11,6 @@ return {
         'autotools_ls',
         'bashls',
         'clangd',
-        'cmakelang',
         'cssls',
         'docker_compose_language_service',
         'dockerls',

@@ -8,3 +8,4 @@
 .classpath
 .vscode
 .npmrc
+**/.claude/settings.local.json

@@ -3,6 +3,8 @@ if [[ -s $HOME/.zshrc.local.pre ]]; then
   source $HOME/.zshrc.local.pre
 fi
 
+export PATH="$HOME/.local/bin:$PATH"
+
 # running profile
 if [[ -s $HOME/.profile ]]; then
   source $HOME/.profile

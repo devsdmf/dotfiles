@@ -3,6 +3,10 @@ padding.x = 10
 padding.y = 10
 blur = true
 
+[window.dimensions]
+columns = 280
+lines = 80
+
 [font]
 normal.family = "Terminess Nerd Font"
 size = 16

@@ -23,7 +23,7 @@ return {
         'pyright',
         'vimls',
         'terraformls',
-        'tsp_server'
+        'ts_ls'
       }
     },
     config = function(_, opts)

@@ -1,7 +1,7 @@
 -- general mappings
 vim.keymap.set('n', '<leader>q', '<Cmd>q<CR>', { desc = 'Quit vim' })
 vim.keymap.set('n', '<leader>s', '<Cmd>w<CR>', { desc = 'Save file' })
-vim.keymap.set('n', '<leader>r', '<Cmd>r<CR>', { desc = 'Reload file' })
+vim.keymap.set('n', '<leader>r', '<Cmd>e<CR>', { desc = 'Reload file' })
 
 -- copy/paste
 vim.keymap.set({'n','v'}, '<leader>y', '"+y', { desc = 'Copy to system clipboard' })

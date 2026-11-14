@@ -30,7 +30,6 @@ return {
       "python",
       "query",
       "regex",
-      "sh",
       "terraform",
       "tsx",
       "typescript",
@@ -59,10 +58,18 @@ return {
     end
 
     TS.install(opts.ensure_installed)
+
+    -- parser names differ from filetypes (e.g. tsx -> typescriptreact, bash -> sh)
+    local filetypes = {}
+    for _, lang in ipairs(opts.ensure_installed) do
+      vim.list_extend(filetypes, vim.treesitter.language.get_filetypes(lang))
+    end
+
     vim.api.nvim_create_autocmd('FileType', {
-      pattern = opts.ensure_installed,
-      callback = function ()
-        vim.treesitter.start()
+      pattern = filetypes,
+      callback = function (ev)
+        -- parser may still be installing on first run
+        pcall(vim.treesitter.start, ev.buf)
       end
     })
   end,

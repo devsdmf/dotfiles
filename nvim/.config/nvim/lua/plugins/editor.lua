@@ -172,9 +172,5 @@ return {
         }
       end
     end
-  },
-  {
-    'OXY2DEV/markview.nvim',
-    lazy = false
   }
 }

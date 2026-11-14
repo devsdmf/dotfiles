@@ -21,7 +21,7 @@ ZSH_THEME="devsdmf"
 export ZSH_TMUX_AUTOSTART=true
 
 # setting up zsh plugins
-if [[ $TERM = 'alacritty' ]]; then
+if [[ $__CFBundleIdentifier = 'org.alacritty' ]]; then
   plugins=(git git-prompt tmux)
 else
   plugins=(git git-prompt)

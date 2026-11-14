@@ -48,7 +48,7 @@ debian-apt-packages:
 		echo "✓ .apt-packages found in home directory"; \
 		echo "Installing packages from .apt-packages..."; \
 		echo "Package installation output is being logged to $(LOG_FILE)"; \
-		sudo apt-get install -y $$(cat ~/.apt-packages | tr '\n' ' ') >> $(LOG_FILE) 2>&1; \
+		sudo apt-get install -y $$(sed -e 's/#.*//' ~/.apt-packages | xargs) >> $(LOG_FILE) 2>&1; \
 		echo "✓ APT packages installed successfully"; \
 	else \
 		echo "✗ No .apt-packages found in home directory"; \
@@ -110,14 +110,10 @@ debian-oh-my-zsh:
 	fi
 
 debian-zsh-theme:
-	@echo "Checking if custom zsh theme is installed"
-	@if [ -f ~/.oh-my-zsh/themes/devsdmf.zsh-theme ]; then \
-		echo "✓ Custom zsh theme already installed"; \
-	else \
-		echo "Installing custom zsh theme..."; \
-		curl -fsSL https://raw.githubusercontent.com/devsdmf/zsh-theme/master/devsdmf.zsh-theme -o ~/.oh-my-zsh/themes/devsdmf.zsh-theme; \
-		echo "✓ Custom zsh theme installed successfully"; \
-	fi
+	@echo "Linking custom zsh theme from oh-my-zsh/"
+	@mkdir -p ~/.oh-my-zsh/custom/themes
+	@ln -sf "$(CURDIR)/oh-my-zsh/devsdmf.zsh-theme" ~/.oh-my-zsh/custom/themes/devsdmf.zsh-theme
+	@echo "✓ Custom zsh theme linked to ~/.oh-my-zsh/custom/themes/devsdmf.zsh-theme"
 
 debian-zsh-restore:
 	@echo "Checking for Oh My Zsh backup file"

@@ -27,11 +27,30 @@ A comprehensive collection of dotfiles and system configuration for macOS and Li
 - Make
 - Appropriate package manager for your platform (Homebrew for macOS, APT for Linux)
 
+### One-line install (new macOS)
+
+On a fresh Mac (Apple Silicon) you don't need anything installed beforehand. This script installs the Xcode
+Command Line Tools (for `git` and `make`) and Homebrew, clones this repository and runs `make darwin`:
+
+```bash
+/bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/devsdmf/dotfiles/refs/heads/main/setup/darwin/install.sh)"
+```
+
+The repository is cloned to `~/.dotfiles` by default. To clone it somewhere else, pass the path after a `_`
+placeholder (with `bash -c`, the first argument becomes `$0`):
+
+```bash
+/bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/devsdmf/dotfiles/refs/heads/main/setup/darwin/install.sh)" _ ~/Projects/devsdmf/dotfiles
+```
+
+The target folder must not exist yet. The setup stops a few times for input: the Command Line Tools dialog,
+Homebrew's password prompt, a keypress before `make darwin`, and the manual Alacritty install.
+
 ### Quick Start
 
 1. Clone the repository:
 ```bash
-git clone <repository-url>
+git clone https://github.com/devsdmf/dotfiles.git
 cd dotfiles
 ```
 

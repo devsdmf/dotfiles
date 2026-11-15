@@ -37,3 +37,13 @@ blue = "#a277ff"
 magenta = "#a277ff"
 cyan = "#61ffca"
 white = "#edecee"
+
+[[keyboard.bindings]]
+key = "Left"
+mods = "Alt"
+chars = "\u001bb"
+
+[[keyboard.bindings]]
+key = "Right"
+mods = "Alt"
+chars = "\u001bf"

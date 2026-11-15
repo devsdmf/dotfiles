@@ -1,8 +1,18 @@
 local M = {}
 
+-- defer file-based plugins only when nvim was started with file arguments
+M.use_lazy_file = true
+M.lazy_file_events = { "BufReadPost", "BufNewFile", "BufWritePre" }
+
 -- <<[LAZY] REF: https://github.com/LazyVim/LazyVim/blob/7a5dbea/lua/lazyvim/util/plugin.lua#L59-L124
 -- Properly load file based plugins without blocking the UI
 function M.lazy_file()
+    -- only set up the LazyFile event once
+    if M._did_setup then
+        return
+    end
+    M._did_setup = true
+
     M.use_lazy_file = M.use_lazy_file and vim.fn.argc(-1) > 0
 
     -- Add support for the LazyFile event

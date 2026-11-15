@@ -6,7 +6,7 @@ NEOVIM_TEMP_DIR := "$(TEMP_DIR)/neovim"
 
 GIT_BIN = $(shell which git)
 
-.PHONY: darwin-pre-setup darwin-xcode darwin-homebrew darwin-install-stow darwin-stow darwin-homebrew-packages darwin-terminus-font darwin-tmux-tpm darwin-tmux-plugins darwin-oh-my-zsh darwin-zsh-theme darwin-zsh-restore darwin-neovim darwin-complete darwin-setup
+.PHONY: darwin-pre-setup darwin-xcode darwin-homebrew darwin-install-stow darwin-stow darwin-homebrew-packages darwin-alacritty darwin-terminus-font darwin-tmux-tpm darwin-tmux-plugins darwin-oh-my-zsh darwin-zsh-theme darwin-zsh-restore darwin-neovim darwin-complete darwin-setup
 
 darwin-pre-setup:
 	@echo "Setting up dotfiles for macOS (darwin)"
@@ -49,7 +49,7 @@ darwin-install-stow:
 
 darwin-stow:
 	@echo "Stowing dotfiles directories..."
-	@stow -t $(HOME) alacritty-darwin darwin gitconfig homebrew nvim tmux vim zsh
+	@stow -t $(HOME) alacritty-darwin gitconfig homebrew nvim tmux vim zsh
 	@echo "✓ Dotfiles stowed successfully"
 
 darwin-homebrew-packages:
@@ -63,6 +63,24 @@ darwin-homebrew-packages:
 	else \
 		echo "✗ No .Brewfile found in home directory"; \
 		echo "Skipping Homebrew package installation"; \
+	fi
+
+darwin-alacritty:
+	@echo "Checking if Alacritty is installed"
+	@if [ -d /Applications/Alacritty.app ]; then \
+		echo "✓ Alacritty found at /Applications/Alacritty.app"; \
+	else \
+		echo "✗ Alacritty not found (the Homebrew cask was disabled because it fails Gatekeeper)"; \
+		echo "  1. Download the latest .dmg from https://github.com/alacritty/alacritty/releases"; \
+		echo "  2. Drag Alacritty.app into /Applications"; \
+		echo "  3. If macOS blocks it, run: xattr -dr com.apple.quarantine /Applications/Alacritty.app"; \
+		while [ ! -d /Applications/Alacritty.app ]; do \
+			printf "Press Enter once Alacritty is installed (or type 'skip'): "; \
+			read -r answer; \
+			if [ "$$answer" = "skip" ]; then echo "Skipping Alacritty installation"; break; fi; \
+			[ -d /Applications/Alacritty.app ] || echo "✗ /Applications/Alacritty.app still not found"; \
+		done; \
+		if [ -d /Applications/Alacritty.app ]; then echo "✓ Alacritty installed"; fi; \
 	fi
 
 darwin-terminus-font:
@@ -168,6 +186,7 @@ darwin-complete:
 	@echo "  ✓ GNU Stow for dotfiles management"
 	@echo "  ✓ Dotfiles symlinked to home directory"
 	@echo "  ✓ Homebrew packages (if .Brewfile exists)"
+	@echo "  ✓ Alacritty (manual install)"
 	@echo "  ✓ Terminus fonts"
 	@echo "  ✓ TMUX Plugin Manager"
 	@echo "  ✓ TMUX plugins"
@@ -182,4 +201,4 @@ darwin-complete:
 	@echo "  • Enjoy your new development environment! 🚀"
 	@echo ""
 
-darwin-setup: darwin-pre-setup darwin-xcode darwin-homebrew darwin-install-stow darwin-stow darwin-homebrew-packages darwin-terminus-font darwin-tmux-tpm darwin-tmux-plugins darwin-oh-my-zsh darwin-zsh-theme darwin-zsh-restore darwin-neovim darwin-complete
+darwin-setup: darwin-pre-setup darwin-xcode darwin-homebrew darwin-install-stow darwin-stow darwin-homebrew-packages darwin-alacritty darwin-terminus-font darwin-tmux-tpm darwin-tmux-plugins darwin-oh-my-zsh darwin-zsh-theme darwin-zsh-restore darwin-neovim darwin-complete

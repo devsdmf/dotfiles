@@ -20,6 +20,8 @@ htop
 ncdu
 fzf
 jq
+diff-so-fancy
+xclip
 
 # security key requirements
 openssh-client
@@ -32,7 +34,7 @@ gcc
 llvm
 nodejs
 npm
-yarn
+yarnpkg # debian's yarn package is cmdtest; this one installs the binary as yarnpkg
 php
 python3
 python3-pip

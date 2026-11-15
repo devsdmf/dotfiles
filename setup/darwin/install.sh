@@ -13,6 +13,21 @@ then
   abort "Bash is required to interpret this script."
 fi
 
+# git ships with the Xcode Command Line Tools, so they must come first
+echo "Checking for Xcode Command Line Tools..."
+if xcode-select -p >/dev/null 2>&1; then
+  echo "✓ Command Line Tools already installed at $(xcode-select -p)"
+else
+  echo "Installing Command Line Tools, follow the dialog that just opened..."
+  xcode-select --install >/dev/null 2>&1
+  until xcode-select -p >/dev/null 2>&1; do
+    sleep 5
+  done
+  echo "✓ Command Line Tools installed"
+fi
+
+command -v git >/dev/null 2>&1 || abort "git still not available after installing the Command Line Tools."
+
 echo "Installing homebrew..."
 /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
 

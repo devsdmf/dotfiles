@@ -3,6 +3,7 @@ brew "mas"
 
 # shell essentials
 brew "zsh"
+brew "zsh-completions"
 brew "tmux"
 brew "git"
 brew "coreutils"
@@ -22,6 +23,7 @@ brew "prettyping"
 brew "htop"
 brew "ncdu"
 brew "fzf"
+brew "bat"
 brew "diff-so-fancy"
 brew "jq"
 
@@ -49,6 +51,5 @@ brew "tree-sitter-cli"
 # neovim dependencies
 brew "fd"
 brew "ripgrep"
-brew "tree-sitter"
 
-cask "alacritty"
+# alacritty is installed manually (cask disabled, fails Gatekeeper), see darwin-alacritty

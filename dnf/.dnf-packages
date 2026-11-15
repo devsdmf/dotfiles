@@ -1,0 +1,48 @@
+# Amazon Linux packages (dnf on AL2023, yum on AL2)
+# packages missing from the repositories are skipped (--skip-broken)
+
+# shell essentials
+zsh
+util-linux-user # provides chsh
+git
+tmux
+bc # used by .tmux.conf to compare tmux versions
+tree
+wget
+tar
+gzip
+unzip
+zip
+which
+
+# build tools (neovim, telescope-fzf-native, treesitter parsers)
+gcc
+gcc-c++
+make
+cmake
+ninja-build
+gettext
+glibc-gconv-extra
+pkgconf
+libtool
+autoconf
+automake
+
+# tools
+htop
+jq
+
+# security key requirements
+openssh-clients
+gnupg2
+
+# development tools
+python3
+python3-pip
+nodejs
+npm
+java-17-amazon-corretto-devel
+
+# neovim dependencies (not packaged everywhere)
+ripgrep
+fd-find

@@ -1,0 +1,191 @@
+AMZN_LOG_FILE := /tmp/amzn-setup.log
+AMZN_TEMP_DIR := /tmp/dotfiles-amzn-setup
+AMZN_NEOVIM_TEMP_DIR := $(AMZN_TEMP_DIR)/neovim
+
+# Amazon Linux 2023 uses dnf, Amazon Linux 2 uses yum
+AMZN_PKG := $(shell command -v dnf 2>/dev/null || command -v yum 2>/dev/null)
+
+# used when stow is not available in the distro repositories
+AMZN_STOW_VERSION := 2.4.1
+
+# stow and diff-so-fancy may be installed into ~/.local/bin by the targets below
+export PATH := $(HOME)/.local/bin:$(PATH)
+
+.PHONY: amzn-pre-setup amzn-base-packages amzn-install-stow amzn-stow amzn-dnf-packages amzn-fzf amzn-diff-so-fancy amzn-tmux-tpm amzn-tmux-plugins amzn-oh-my-zsh amzn-zsh-theme amzn-zsh-restore amzn-neovim amzn-chsh amzn-complete amzn-setup
+
+amzn-pre-setup:
+	@echo "Setting up dotfiles for Amazon Linux (amzn)"
+	@printf "writing log files to $(AMZN_LOG_FILE)...\n\n"
+	@if [ -z "$(AMZN_PKG)" ]; then echo "✗ Neither dnf nor yum found"; exit 1; fi
+
+amzn-base-packages:
+	@echo "Installing base packages needed by the setup..."
+	@sudo $(AMZN_PKG) install -y --skip-broken git tar gzip make perl >> $(AMZN_LOG_FILE) 2>&1
+	@echo "✓ Base packages installed"
+
+amzn-install-stow:
+	@echo "Checking if stow is installed"
+	@if command -v stow >/dev/null 2>&1; then \
+		echo "✓ stow already installed at $$(command -v stow)"; \
+	elif sudo $(AMZN_PKG) install -y stow >> $(AMZN_LOG_FILE) 2>&1 && command -v stow >/dev/null 2>&1; then \
+		echo "✓ stow installed from the package repositories"; \
+	else \
+		echo "stow not in the repositories, building $(AMZN_STOW_VERSION) from source into ~/.local..."; \
+		rm -rf $(AMZN_TEMP_DIR)/stow && mkdir -p $(AMZN_TEMP_DIR)/stow; \
+		curl -fsSL https://ftp.gnu.org/gnu/stow/stow-$(AMZN_STOW_VERSION).tar.gz | tar xz -C $(AMZN_TEMP_DIR)/stow && \
+		cd $(AMZN_TEMP_DIR)/stow/stow-$(AMZN_STOW_VERSION) && \
+		./configure --prefix=$(HOME)/.local >> $(AMZN_LOG_FILE) 2>&1 && \
+		make install >> $(AMZN_LOG_FILE) 2>&1 || { echo "✗ stow build failed, see $(AMZN_LOG_FILE)"; exit 1; }; \
+		rm -rf $(AMZN_TEMP_DIR)/stow; \
+		echo "✓ stow installed at ~/.local/bin/stow"; \
+	fi
+
+amzn-stow:
+	@echo "Stowing dotfiles directories..."
+	@stow -t $(HOME) gitconfig dnf nvim tmux vim zsh
+	@echo "✓ Dotfiles stowed successfully"
+
+amzn-dnf-packages:
+	@echo "Checking for packages to install"
+	@if [ -f ~/.dnf-packages ]; then \
+		echo "✓ .dnf-packages found in home directory"; \
+		echo "Installing packages from .dnf-packages (unavailable ones are skipped)..."; \
+		echo "Package installation output is being logged to $(AMZN_LOG_FILE)"; \
+		sudo $(AMZN_PKG) install -y --skip-broken $$(sed -e 's/#.*//' ~/.dnf-packages | xargs) >> $(AMZN_LOG_FILE) 2>&1; \
+		echo "✓ Packages installed successfully"; \
+	else \
+		echo "✗ No .dnf-packages found in home directory"; \
+		echo "Skipping package installation"; \
+	fi
+
+# fzf is not in the Amazon Linux repositories; .zshrc picks up ~/.fzf
+amzn-fzf:
+	@echo "Checking if fzf is installed"
+	@if command -v fzf >/dev/null 2>&1 || [ -x ~/.fzf/bin/fzf ]; then \
+		echo "✓ fzf already installed"; \
+	else \
+		echo "Installing fzf into ~/.fzf..."; \
+		git clone --depth 1 https://github.com/junegunn/fzf.git ~/.fzf >> $(AMZN_LOG_FILE) 2>&1; \
+		~/.fzf/install --bin >> $(AMZN_LOG_FILE) 2>&1; \
+		echo "✓ fzf installed"; \
+	fi
+
+# .gitconfig uses diff-so-fancy as the pager, and it is not packaged for Amazon Linux
+amzn-diff-so-fancy:
+	@echo "Checking if diff-so-fancy is installed"
+	@if command -v diff-so-fancy >/dev/null 2>&1; then \
+		echo "✓ diff-so-fancy already installed"; \
+	else \
+		echo "Installing diff-so-fancy into ~/.local..."; \
+		mkdir -p ~/.local/share ~/.local/bin; \
+		git clone --depth 1 https://github.com/so-fancy/diff-so-fancy.git ~/.local/share/diff-so-fancy >> $(AMZN_LOG_FILE) 2>&1; \
+		ln -sf ~/.local/share/diff-so-fancy/diff-so-fancy ~/.local/bin/diff-so-fancy; \
+		echo "✓ diff-so-fancy installed at ~/.local/bin/diff-so-fancy"; \
+	fi
+
+amzn-tmux-tpm:
+	@echo "Checking if TMUX Plugin Manager is installed"
+	@if [ -d ~/.tmux/plugins/tpm ]; then \
+		echo "✓ TMUX Plugin Manager already installed"; \
+	else \
+		echo "Installing TMUX Plugin Manager..."; \
+		mkdir -p ~/.tmux/plugins; \
+		git clone https://github.com/tmux-plugins/tpm ~/.tmux/plugins/tpm; \
+		echo "✓ TMUX Plugin Manager installed successfully"; \
+	fi
+	@echo "Refreshing tmux environment..."
+	@tmux source ~/.tmux.conf || echo "Note: tmux not running or config not found"
+
+amzn-tmux-plugins:
+	@echo "Installing tmux plugins..."
+	@if [ -f ~/.tmux/plugins/tpm/bin/install_plugins ]; then \
+		sh ~/.tmux/plugins/tpm/bin/install_plugins; \
+		echo "✓ tmux plugins installed successfully"; \
+	else \
+		echo "✗ TPM install script not found. Make sure amzn-tmux-tpm target ran successfully"; \
+		exit 1; \
+	fi
+
+amzn-oh-my-zsh:
+	@echo "Checking if Oh My Zsh is installed"
+	@if [ -d ~/.oh-my-zsh ]; then \
+		echo "✓ Oh My Zsh already installed"; \
+	else \
+		echo "Installing Oh My Zsh..."; \
+		sh -c "$$(curl -fsSL https://raw.github.com/ohmyzsh/ohmyzsh/master/tools/install.sh)" "" --unattended; \
+		echo "✓ Oh My Zsh installed successfully"; \
+	fi
+
+amzn-zsh-theme:
+	@echo "Linking custom zsh theme from oh-my-zsh/"
+	@mkdir -p ~/.oh-my-zsh/custom/themes
+	@ln -sf "$(CURDIR)/oh-my-zsh/devsdmf.zsh-theme" ~/.oh-my-zsh/custom/themes/devsdmf.zsh-theme
+	@echo "✓ Custom zsh theme linked to ~/.oh-my-zsh/custom/themes/devsdmf.zsh-theme"
+
+amzn-zsh-restore:
+	@echo "Checking for Oh My Zsh backup file"
+	@if [ -f ~/.zshrc.pre-oh-my-zsh ] || [ -L ~/.zshrc.pre-oh-my-zsh ]; then \
+		echo "✓ Found Oh My Zsh backup file"; \
+		echo "Restoring original .zshrc from backup..."; \
+		mv ~/.zshrc.pre-oh-my-zsh ~/.zshrc; \
+		echo "✓ Original .zshrc restored successfully"; \
+	else \
+		echo "✗ No Oh My Zsh backup file found"; \
+		echo "Skipping .zshrc restoration"; \
+	fi
+
+amzn-neovim:
+	@echo "Checking if NeoVim is installed"
+	@if command -v nvim >/dev/null 2>&1; then \
+		echo "✓ NeoVim already installed at $$(command -v nvim)"; \
+		nvim --version | head -1; \
+	else \
+		echo "Installing NeoVim from source"; \
+		mkdir -p $(AMZN_NEOVIM_TEMP_DIR); \
+		echo "Cloning NeoVim repository..."; \
+		git clone https://github.com/neovim/neovim $(AMZN_NEOVIM_TEMP_DIR) >> $(AMZN_LOG_FILE) 2>&1; \
+		cd $(AMZN_NEOVIM_TEMP_DIR) && git checkout stable >> $(AMZN_LOG_FILE) 2>&1; \
+		echo "Building NeoVim (this may take a while)..."; \
+		echo "Build output is being logged to $(AMZN_LOG_FILE)"; \
+		cd $(AMZN_NEOVIM_TEMP_DIR) && make CMAKE_BUILD_TYPE=RelWithDebInfo >> $(AMZN_LOG_FILE) 2>&1; \
+		echo "Installing NeoVim (may require sudo password)..."; \
+		cd $(AMZN_NEOVIM_TEMP_DIR) && sudo make install >> $(AMZN_LOG_FILE) 2>&1; \
+		echo "✓ NeoVim installed successfully"; \
+		echo "Cleaning up temporary files..."; \
+		sudo rm -rf $(AMZN_NEOVIM_TEMP_DIR) >> $(AMZN_LOG_FILE) 2>&1; \
+	fi
+	@echo "Creating NeoVim data directory"
+	@mkdir -p ~/.local/share/nvim
+	@echo "✓ NeoVim setup complete"
+
+# VMs default to bash; changing the shell can fail for directory (LDAP/SSSD) users
+amzn-chsh:
+	@echo "Checking default shell"
+	@if [ "$$(basename "$$SHELL")" = "zsh" ]; then \
+		echo "✓ zsh is already the default shell"; \
+	elif sudo chsh -s "$$(command -v zsh)" "$$USER" >> $(AMZN_LOG_FILE) 2>&1; then \
+		echo "✓ Default shell changed to zsh (takes effect on next login)"; \
+	else \
+		echo "✗ Could not change the default shell, run 'exec zsh' or add it to ~/.bashrc"; \
+	fi
+
+amzn-complete:
+	@echo ""
+	@echo "🎉 Amazon Linux dotfiles setup completed successfully!"
+	@echo ""
+	@echo "Summary of what was installed/configured:"
+	@echo "  ✓ Base packages and GNU Stow"
+	@echo "  ✓ Dotfiles symlinked to home directory"
+	@echo "  ✓ Packages from .dnf-packages (unavailable ones skipped)"
+	@echo "  ✓ fzf and diff-so-fancy"
+	@echo "  ✓ TMUX Plugin Manager and plugins"
+	@echo "  ✓ Oh My Zsh framework and custom zsh theme"
+	@echo "  ✓ NeoVim editor"
+	@echo "  ✓ zsh as default shell (if allowed)"
+	@echo ""
+	@echo "Next steps:"
+	@echo "  • Log in again or run: exec zsh"
+	@echo "  • Check the log file for details: $(AMZN_LOG_FILE)"
+	@echo ""
+
+amzn-setup: amzn-pre-setup amzn-base-packages amzn-install-stow amzn-stow amzn-dnf-packages amzn-fzf amzn-diff-so-fancy amzn-tmux-tpm amzn-tmux-plugins amzn-oh-my-zsh amzn-zsh-theme amzn-zsh-restore amzn-neovim amzn-chsh amzn-complete

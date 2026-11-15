@@ -4,7 +4,7 @@ A comprehensive collection of dotfiles and system configuration for macOS and Li
 
 ## Features
 
-- **Cross-platform support**: macOS (Darwin) and Linux (Debian-based)
+- **Cross-platform support**: macOS (Darwin), Linux (Debian-based) and Amazon Linux
 - **Automated setup**: Simple Makefile-based installation
 - **Comprehensive tooling**: Configurations for development tools and terminal environments
 - **Modular structure**: Organized by application and platform
@@ -16,7 +16,7 @@ A comprehensive collection of dotfiles and system configuration for macOS and Li
 - **Editors**: Vim and Neovim configurations
 - **Version Control**: Git configuration and aliases
 - **Terminal Multiplexer**: tmux setup
-- **Package Management**: Homebrew (macOS) and APT (Linux) configurations
+- **Package Management**: Homebrew (macOS), APT (Debian) and dnf (Amazon Linux) package lists
 - **Platform-specific**: Darwin and Linux specific configurations
 
 ## Installation
@@ -25,7 +25,7 @@ A comprehensive collection of dotfiles and system configuration for macOS and Li
 
 - Git
 - Make
-- Appropriate package manager for your platform (Homebrew for macOS, APT for Linux)
+- Appropriate package manager for your platform (Homebrew for macOS, APT for Debian, dnf/yum for Amazon Linux)
 
 ### One-line install (new macOS)
 
@@ -66,6 +66,14 @@ make darwin
 make debian
 ```
 
+**For Amazon Linux (2023, best effort on 2):**
+```bash
+make amzn
+```
+
+This is meant for headless VMs: it skips Alacritty and the fonts, installs fzf and diff-so-fancy from git,
+and builds stow from source if the repositories don't have it.
+
 ### Manual Installation
 
 You can also run the default target to see available options:
@@ -80,6 +88,7 @@ make
 ├── alacritty-darwin/   # Alacritty terminal configuration (macOS)
 ├── alacritty-debian/   # Alacritty terminal configuration (Debian/Ubuntu)
 ├── apt/                # APT package configurations
+├── dnf/                # Amazon Linux package list (.dnf-packages)
 ├── gitconfig/          # Git configuration files
 ├── homebrew/           # Homebrew package list (.Brewfile)
 ├── nvim/               # Neovim configuration

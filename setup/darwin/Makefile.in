@@ -1,24 +1,21 @@
-SETUP_DIR = "$(shell pwd)/setup/darwin"
-LOG_FILE := "/tmp/darwin-setup.log"
-TEMP_DIR := "/tmp/dotfiles-darwin-setup"
-FONTS_TEMP_DIR := "$(TEMP_DIR)/terminal-fonts"
-NEOVIM_TEMP_DIR := "$(TEMP_DIR)/neovim"
-
-GIT_BIN = $(shell which git)
+DARWIN_LOG_FILE := "/tmp/darwin-setup.log"
+DARWIN_TEMP_DIR := "/tmp/dotfiles-darwin-setup"
+DARWIN_FONTS_TEMP_DIR := "$(DARWIN_TEMP_DIR)/terminal-fonts"
+DARWIN_NEOVIM_TEMP_DIR := "$(DARWIN_TEMP_DIR)/neovim"
 
 .PHONY: darwin-pre-setup darwin-xcode darwin-homebrew darwin-install-stow darwin-stow darwin-homebrew-packages darwin-alacritty darwin-terminus-font darwin-tmux-tpm darwin-tmux-plugins darwin-oh-my-zsh darwin-zsh-theme darwin-zsh-restore darwin-neovim darwin-complete darwin-setup
 
 darwin-pre-setup:
 	@echo "Setting up dotfiles for macOS (darwin)"
-	@echo "writing log files to ${LOG_FILE}...\n"
+	@echo "writing log files to ${DARWIN_LOG_FILE}...\n"
 
 darwin-xcode:
 	@echo "Checking if xcode-select is installed"
 	@if command -v xcode-select >/dev/null 2>&1; then \
 		echo "✓ xcode-select found at $$(command -v xcode-select)"; \
 		echo "Installing Xcode command line tools if needed..."; \
-		echo "Xcode installation output is being logged to $(LOG_FILE)"; \
-		xcode-select --install >> $(LOG_FILE) 2>&1 || echo "Xcode command line tools already installed"; \
+		echo "Xcode installation output is being logged to $(DARWIN_LOG_FILE)"; \
+		xcode-select --install >> $(DARWIN_LOG_FILE) 2>&1 || echo "Xcode command line tools already installed"; \
 	else \
 		echo "✗ xcode-select not found"; \
 		echo "Please install Xcode from the App Store or run: xcode-select --install"; \
@@ -57,8 +54,8 @@ darwin-homebrew-packages:
 	@if [ -f ~/.Brewfile ]; then \
 		echo "✓ .Brewfile found in home directory"; \
 		echo "Installing packages from .Brewfile..."; \
-		echo "Package installation output is being logged to $(LOG_FILE)"; \
-		brew bundle --global >> $(LOG_FILE) 2>&1; \
+		echo "Package installation output is being logged to $(DARWIN_LOG_FILE)"; \
+		brew bundle --global >> $(DARWIN_LOG_FILE) 2>&1; \
 		echo "✓ Homebrew packages installed successfully"; \
 	else \
 		echo "✗ No .Brewfile found in home directory"; \
@@ -90,15 +87,15 @@ darwin-terminus-font:
 		ls ~/Library/Fonts/*Terminess* | wc -l | xargs echo "Found" | sed 's/$$/ font files/'; \
 	else \
 		echo "Installing Terminus fonts"; \
-		mkdir -p $(FONTS_TEMP_DIR); \
+		mkdir -p $(DARWIN_FONTS_TEMP_DIR); \
 		echo "Extracting terminus-font.zip from setup/resources..."; \
-		cp setup/resources/terminus-font.zip $(FONTS_TEMP_DIR)/; \
-		cd $(FONTS_TEMP_DIR) && unzip -q terminus-font.zip; \
+		cp setup/resources/terminus-font.zip $(DARWIN_FONTS_TEMP_DIR)/; \
+		cd $(DARWIN_FONTS_TEMP_DIR) && unzip -q terminus-font.zip; \
 		echo "Installing TTF fonts to ~/Library/Fonts..."; \
-		find $(FONTS_TEMP_DIR) -name "*.ttf" -exec cp {} ~/Library/Fonts/ \;; \
+		find $(DARWIN_FONTS_TEMP_DIR) -name "*.ttf" -exec cp {} ~/Library/Fonts/ \;; \
 		echo "✓ Terminus fonts installed successfully"; \
 		echo "Cleaning up temporary files..."; \
-		rm -rf $(FONTS_TEMP_DIR); \
+		rm -rf $(DARWIN_FONTS_TEMP_DIR); \
 	fi
 
 darwin-tmux-tpm:
@@ -159,18 +156,18 @@ darwin-neovim:
 		nvim --version | head -1; \
 	else \
 		echo "Installing NeoVim from source"; \
-		mkdir -p $(NEOVIM_TEMP_DIR); \
+		mkdir -p $(DARWIN_NEOVIM_TEMP_DIR); \
 		echo "Cloning NeoVim repository..."; \
-		git clone https://github.com/neovim/neovim $(NEOVIM_TEMP_DIR) >> $(LOG_FILE) 2>&1; \
-		cd $(NEOVIM_TEMP_DIR) && git checkout stable >> $(LOG_FILE) 2>&1; \
+		git clone https://github.com/neovim/neovim $(DARWIN_NEOVIM_TEMP_DIR) >> $(DARWIN_LOG_FILE) 2>&1; \
+		cd $(DARWIN_NEOVIM_TEMP_DIR) && git checkout stable >> $(DARWIN_LOG_FILE) 2>&1; \
 		echo "Building NeoVim (this may take a while)..."; \
-		echo "Build output is being logged to $(LOG_FILE)"; \
-		cd $(NEOVIM_TEMP_DIR) && make CMAKE_BUILD_TYPE=RelWithDebInfo >> $(LOG_FILE) 2>&1; \
+		echo "Build output is being logged to $(DARWIN_LOG_FILE)"; \
+		cd $(DARWIN_NEOVIM_TEMP_DIR) && make CMAKE_BUILD_TYPE=RelWithDebInfo >> $(DARWIN_LOG_FILE) 2>&1; \
 		echo "Installing NeoVim (may require sudo password)..."; \
-		cd $(NEOVIM_TEMP_DIR) && sudo make install >> $(LOG_FILE) 2>&1; \
+		cd $(DARWIN_NEOVIM_TEMP_DIR) && sudo make install >> $(DARWIN_LOG_FILE) 2>&1; \
 		echo "✓ NeoVim installed successfully"; \
 		echo "Cleaning up temporary files..."; \
-		sudo rm -rf $(NEOVIM_TEMP_DIR) >> $(LOG_FILE) 2>&1; \
+		sudo rm -rf $(DARWIN_NEOVIM_TEMP_DIR) >> $(DARWIN_LOG_FILE) 2>&1; \
 	fi
 	@echo "Creating NeoVim data directory"
 	@mkdir -p ~/.local/share/nvim
@@ -197,7 +194,7 @@ darwin-complete:
 	@echo ""
 	@echo "Next steps:"
 	@echo "  • Restart your terminal or run: source ~/.zshrc"
-	@echo "  • Check the log file for details: $(LOG_FILE)"
+	@echo "  • Check the log file for details: $(DARWIN_LOG_FILE)"
 	@echo "  • Enjoy your new development environment! 🚀"
 	@echo ""
 

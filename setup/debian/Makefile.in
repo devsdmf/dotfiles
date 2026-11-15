@@ -1,14 +1,13 @@
-SETUP_DIR = "$(shell pwd)/setup/debian"
-LOG_FILE := "/tmp/debian-setup.log"
-TEMP_DIR := "/tmp/dotfiles-debian-setup"
-FONTS_TEMP_DIR := "$(TEMP_DIR)/terminal-fonts"
-NEOVIM_TEMP_DIR := "$(TEMP_DIR)/neovim"
+DEBIAN_LOG_FILE := "/tmp/debian-setup.log"
+DEBIAN_TEMP_DIR := "/tmp/dotfiles-debian-setup"
+DEBIAN_FONTS_TEMP_DIR := "$(DEBIAN_TEMP_DIR)/terminal-fonts"
+DEBIAN_NEOVIM_TEMP_DIR := "$(DEBIAN_TEMP_DIR)/neovim"
 
 .PHONY: debian-pre-setup debian-build-essential debian-apt-update debian-install-stow debian-stow debian-apt-packages debian-terminus-font debian-tmux-tpm debian-tmux-plugins debian-oh-my-zsh debian-zsh-theme debian-zsh-restore debian-neovim debian-complete debian-setup
 
 debian-pre-setup:
 	@echo "Setting up dotfiles for Debian/Ubuntu (debian)"
-	@echo "writing log files to ${LOG_FILE}...\n"
+	@echo "writing log files to ${DEBIAN_LOG_FILE}...\n"
 
 debian-build-essential:
 	@echo "Checking if build-essential is installed"
@@ -16,15 +15,15 @@ debian-build-essential:
 		echo "✓ build-essential already installed"; \
 	else \
 		echo "Installing build-essential..."; \
-		echo "Build tools installation output is being logged to $(LOG_FILE)"; \
-		sudo apt-get install -y build-essential >> $(LOG_FILE) 2>&1; \
+		echo "Build tools installation output is being logged to $(DEBIAN_LOG_FILE)"; \
+		sudo apt-get install -y build-essential >> $(DEBIAN_LOG_FILE) 2>&1; \
 		echo "✓ build-essential installed successfully"; \
 	fi
 
 debian-apt-update:
 	@echo "Updating package lists..."
-	@echo "APT update output is being logged to $(LOG_FILE)"
-	@sudo apt-get update >> $(LOG_FILE) 2>&1
+	@echo "APT update output is being logged to $(DEBIAN_LOG_FILE)"
+	@sudo apt-get update >> $(DEBIAN_LOG_FILE) 2>&1
 	@echo "✓ Package lists updated successfully"
 
 debian-install-stow:
@@ -47,8 +46,8 @@ debian-apt-packages:
 	@if [ -f ~/.apt-packages ]; then \
 		echo "✓ .apt-packages found in home directory"; \
 		echo "Installing packages from .apt-packages..."; \
-		echo "Package installation output is being logged to $(LOG_FILE)"; \
-		sudo apt-get install -y $$(sed -e 's/#.*//' ~/.apt-packages | xargs) >> $(LOG_FILE) 2>&1; \
+		echo "Package installation output is being logged to $(DEBIAN_LOG_FILE)"; \
+		sudo apt-get install -y $$(sed -e 's/#.*//' ~/.apt-packages | xargs) >> $(DEBIAN_LOG_FILE) 2>&1; \
 		echo "✓ APT packages installed successfully"; \
 	else \
 		echo "✗ No .apt-packages found in home directory"; \
@@ -62,18 +61,18 @@ debian-terminus-font:
 		ls ~/.local/share/fonts/*Terminus* | wc -l | xargs echo "Found" | sed 's/$$/ font files/'; \
 	else \
 		echo "Installing Terminus fonts"; \
-		mkdir -p $(FONTS_TEMP_DIR); \
+		mkdir -p $(DEBIAN_FONTS_TEMP_DIR); \
 		mkdir -p ~/.local/share/fonts; \
 		echo "Extracting terminus-font.zip from setup/resources..."; \
-		cp setup/resources/terminus-font.zip $(FONTS_TEMP_DIR)/; \
-		cd $(FONTS_TEMP_DIR) && unzip -q terminus-font.zip; \
+		cp setup/resources/terminus-font.zip $(DEBIAN_FONTS_TEMP_DIR)/; \
+		cd $(DEBIAN_FONTS_TEMP_DIR) && unzip -q terminus-font.zip; \
 		echo "Installing TTF fonts to ~/.local/share/fonts..."; \
-		find $(FONTS_TEMP_DIR) -name "*.ttf" -exec cp {} ~/.local/share/fonts/ \;; \
+		find $(DEBIAN_FONTS_TEMP_DIR) -name "*.ttf" -exec cp {} ~/.local/share/fonts/ \;; \
 		echo "Refreshing font cache..."; \
-		fc-cache -fv >> $(LOG_FILE) 2>&1; \
+		fc-cache -fv >> $(DEBIAN_LOG_FILE) 2>&1; \
 		echo "✓ Terminus fonts installed successfully"; \
 		echo "Cleaning up temporary files..."; \
-		rm -rf $(FONTS_TEMP_DIR); \
+		rm -rf $(DEBIAN_FONTS_TEMP_DIR); \
 	fi
 
 debian-tmux-tpm:
@@ -134,18 +133,18 @@ debian-neovim:
 		nvim --version | head -1; \
 	else \
 		echo "Installing NeoVim from source"; \
-		mkdir -p $(NEOVIM_TEMP_DIR); \
+		mkdir -p $(DEBIAN_NEOVIM_TEMP_DIR); \
 		echo "Cloning NeoVim repository..."; \
-		git clone https://github.com/neovim/neovim $(NEOVIM_TEMP_DIR) >> $(LOG_FILE) 2>&1; \
-		cd $(NEOVIM_TEMP_DIR) && git checkout stable >> $(LOG_FILE) 2>&1; \
+		git clone https://github.com/neovim/neovim $(DEBIAN_NEOVIM_TEMP_DIR) >> $(DEBIAN_LOG_FILE) 2>&1; \
+		cd $(DEBIAN_NEOVIM_TEMP_DIR) && git checkout stable >> $(DEBIAN_LOG_FILE) 2>&1; \
 		echo "Building NeoVim (this may take a while)..."; \
-		echo "Build output is being logged to $(LOG_FILE)"; \
-		cd $(NEOVIM_TEMP_DIR) && make CMAKE_BUILD_TYPE=RelWithDebInfo >> $(LOG_FILE) 2>&1; \
+		echo "Build output is being logged to $(DEBIAN_LOG_FILE)"; \
+		cd $(DEBIAN_NEOVIM_TEMP_DIR) && make CMAKE_BUILD_TYPE=RelWithDebInfo >> $(DEBIAN_LOG_FILE) 2>&1; \
 		echo "Installing NeoVim (may require sudo password)..."; \
-		cd $(NEOVIM_TEMP_DIR) && sudo make install >> $(LOG_FILE) 2>&1; \
+		cd $(DEBIAN_NEOVIM_TEMP_DIR) && sudo make install >> $(DEBIAN_LOG_FILE) 2>&1; \
 		echo "✓ NeoVim installed successfully"; \
 		echo "Cleaning up temporary files..."; \
-		sudo rm -rf $(NEOVIM_TEMP_DIR) >> $(LOG_FILE) 2>&1; \
+		sudo rm -rf $(DEBIAN_NEOVIM_TEMP_DIR) >> $(DEBIAN_LOG_FILE) 2>&1; \
 	fi
 	@echo "Creating NeoVim data directory"
 	@mkdir -p ~/.local/share/nvim
@@ -171,7 +170,7 @@ debian-complete:
 	@echo ""
 	@echo "Next steps:"
 	@echo "  • Restart your terminal or run: source ~/.zshrc"
-	@echo "  • Check the log file for details: $(LOG_FILE)"
+	@echo "  • Check the log file for details: $(DEBIAN_LOG_FILE)"
 	@echo "  • Enjoy your new development environment! 🚀"
 	@echo ""
 

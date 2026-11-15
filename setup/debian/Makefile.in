@@ -3,7 +3,7 @@ DEBIAN_TEMP_DIR := "/tmp/dotfiles-debian-setup"
 DEBIAN_FONTS_TEMP_DIR := "$(DEBIAN_TEMP_DIR)/terminal-fonts"
 DEBIAN_NEOVIM_TEMP_DIR := "$(DEBIAN_TEMP_DIR)/neovim"
 
-.PHONY: debian-pre-setup debian-build-essential debian-apt-update debian-install-stow debian-stow debian-apt-packages debian-terminus-font debian-tmux-tpm debian-tmux-plugins debian-oh-my-zsh debian-zsh-theme debian-zsh-restore debian-neovim debian-complete debian-setup
+.PHONY: debian-pre-setup debian-build-essential debian-apt-update debian-install-stow debian-stow debian-apt-packages debian-terminus-font debian-tmux-tpm debian-tmux-plugins debian-oh-my-zsh debian-zsh-theme debian-zshrc debian-neovim debian-complete debian-setup
 
 debian-pre-setup:
 	@echo "Setting up dotfiles for Debian/Ubuntu (debian)"
@@ -104,7 +104,7 @@ debian-oh-my-zsh:
 		echo "✓ Oh My Zsh already installed"; \
 	else \
 		echo "Installing Oh My Zsh..."; \
-		sh -c "$$(curl -fsSL https://raw.github.com/ohmyzsh/ohmyzsh/master/tools/install.sh)" "" --unattended; \
+		sh -c "$$(curl -fsSL https://raw.github.com/ohmyzsh/ohmyzsh/master/tools/install.sh)" "" --unattended --keep-zshrc; \
 		echo "✓ Oh My Zsh installed successfully"; \
 	fi
 
@@ -114,18 +114,8 @@ debian-zsh-theme:
 	@ln -sf "$(CURDIR)/oh-my-zsh/devsdmf.zsh-theme" ~/.oh-my-zsh/custom/themes/devsdmf.zsh-theme
 	@echo "✓ Custom zsh theme linked to ~/.oh-my-zsh/custom/themes/devsdmf.zsh-theme"
 
-debian-zsh-restore:
-	@echo "Checking for Oh My Zsh backup file"
-	@if [ -f ~/.zshrc.pre-oh-my-zsh ]; then \
-		echo "✓ Found Oh My Zsh backup file"; \
-		echo "Restoring original .zshrc from backup..."; \
-		mv ~/.zshrc.pre-oh-my-zsh ~/.zshrc; \
-		echo "✓ Original .zshrc restored successfully"; \
-	else \
-		echo "✗ No Oh My Zsh backup file found"; \
-		echo "Skipping .zshrc restoration"; \
-	fi
-
+debian-zshrc:
+	@sh setup/scripts/zshrc.sh
 debian-neovim:
 	@echo "Checking if NeoVim is installed"
 	@if command -v nvim >/dev/null 2>&1; then \
@@ -165,13 +155,13 @@ debian-complete:
 	@echo "  ✓ TMUX plugins"
 	@echo "  ✓ Oh My Zsh framework"
 	@echo "  ✓ Custom zsh theme"
-	@echo "  ✓ Zsh configuration restored"
+	@echo "  ✓ Machine-specific ~/.zshrc sourcing ~/.devsdmf.zshrc"
 	@echo "  ✓ NeoVim editor"
 	@echo ""
 	@echo "Next steps:"
-	@echo "  • Restart your terminal or run: source ~/.zshrc"
+	@echo "  • Restart your terminal or run: exec zsh"
 	@echo "  • Check the log file for details: $(DEBIAN_LOG_FILE)"
 	@echo "  • Enjoy your new development environment! 🚀"
 	@echo ""
 
-debian-setup: debian-pre-setup debian-build-essential debian-apt-update debian-install-stow debian-stow debian-apt-packages debian-terminus-font debian-tmux-tpm debian-tmux-plugins debian-oh-my-zsh debian-zsh-theme debian-zsh-restore debian-neovim debian-complete
+debian-setup: debian-pre-setup debian-build-essential debian-apt-update debian-install-stow debian-stow debian-apt-packages debian-terminus-font debian-tmux-tpm debian-tmux-plugins debian-oh-my-zsh debian-zsh-theme debian-zshrc debian-neovim debian-complete

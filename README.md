@@ -96,17 +96,20 @@ make
 ├── setup/              # Setup scripts and Makefiles
 ├── tmux/               # tmux configuration
 ├── vim/                # Vim configuration
-└── zsh/                # Zsh shell configuration (single .zshrc for macOS and Linux)
+└── zsh/                # Shared zsh config (.devsdmf.zshrc) for macOS and Linux
 ```
 
 ### Shell load order
 
-`.zshrc` is the only shell file. It loads, in order:
+`~/.zshrc` is **not** versioned. It belongs to the machine, so installers and CLIs can append to it freely.
+The setup creates it (or prepends to an existing one) with a single line that sources the shared
+`~/.devsdmf.zshrc`, which is stowed from this repo. That file loads, in order:
 
 1. `~/.zshrc.local.pre` (machine-specific, not versioned)
 2. Environment, Homebrew, Oh My Zsh, fzf and aliases
-3. `~/.zshrc.local.post` (machine-specific, not versioned)
-4. `~/.profile`, if an app created one (takes precedence over everything above)
+3. `~/.profile`, if an app created one (takes precedence over everything above)
+
+Anything after the source line in `~/.zshrc` runs last. Put machine-specific settings there.
 
 ### Alacritty on macOS
 

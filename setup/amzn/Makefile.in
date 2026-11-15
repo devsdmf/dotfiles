@@ -11,7 +11,7 @@ AMZN_STOW_VERSION := 2.4.1
 # stow and diff-so-fancy may be installed into ~/.local/bin by the targets below
 export PATH := $(HOME)/.local/bin:$(PATH)
 
-.PHONY: amzn-pre-setup amzn-base-packages amzn-install-stow amzn-stow amzn-dnf-packages amzn-fzf amzn-diff-so-fancy amzn-tmux-tpm amzn-tmux-plugins amzn-oh-my-zsh amzn-zsh-theme amzn-zsh-restore amzn-neovim amzn-chsh amzn-complete amzn-setup
+.PHONY: amzn-pre-setup amzn-base-packages amzn-install-stow amzn-stow amzn-dnf-packages amzn-fzf amzn-diff-so-fancy amzn-tmux-tpm amzn-tmux-plugins amzn-oh-my-zsh amzn-zsh-theme amzn-zshrc amzn-neovim amzn-chsh amzn-complete amzn-setup
 
 amzn-pre-setup:
 	@echo "Setting up dotfiles for Amazon Linux (amzn)"
@@ -112,7 +112,7 @@ amzn-oh-my-zsh:
 		echo "✓ Oh My Zsh already installed"; \
 	else \
 		echo "Installing Oh My Zsh..."; \
-		sh -c "$$(curl -fsSL https://raw.github.com/ohmyzsh/ohmyzsh/master/tools/install.sh)" "" --unattended; \
+		sh -c "$$(curl -fsSL https://raw.github.com/ohmyzsh/ohmyzsh/master/tools/install.sh)" "" --unattended --keep-zshrc; \
 		echo "✓ Oh My Zsh installed successfully"; \
 	fi
 
@@ -122,18 +122,8 @@ amzn-zsh-theme:
 	@ln -sf "$(CURDIR)/oh-my-zsh/devsdmf.zsh-theme" ~/.oh-my-zsh/custom/themes/devsdmf.zsh-theme
 	@echo "✓ Custom zsh theme linked to ~/.oh-my-zsh/custom/themes/devsdmf.zsh-theme"
 
-amzn-zsh-restore:
-	@echo "Checking for Oh My Zsh backup file"
-	@if [ -f ~/.zshrc.pre-oh-my-zsh ] || [ -L ~/.zshrc.pre-oh-my-zsh ]; then \
-		echo "✓ Found Oh My Zsh backup file"; \
-		echo "Restoring original .zshrc from backup..."; \
-		mv ~/.zshrc.pre-oh-my-zsh ~/.zshrc; \
-		echo "✓ Original .zshrc restored successfully"; \
-	else \
-		echo "✗ No Oh My Zsh backup file found"; \
-		echo "Skipping .zshrc restoration"; \
-	fi
-
+amzn-zshrc:
+	@sh setup/scripts/zshrc.sh
 amzn-neovim:
 	@echo "Checking if NeoVim is installed"
 	@if command -v nvim >/dev/null 2>&1; then \
@@ -180,6 +170,7 @@ amzn-complete:
 	@echo "  ✓ fzf and diff-so-fancy"
 	@echo "  ✓ TMUX Plugin Manager and plugins"
 	@echo "  ✓ Oh My Zsh framework and custom zsh theme"
+	@echo "  ✓ Machine-specific ~/.zshrc sourcing ~/.devsdmf.zshrc"
 	@echo "  ✓ NeoVim editor"
 	@echo "  ✓ zsh as default shell (if allowed)"
 	@echo ""
@@ -188,4 +179,4 @@ amzn-complete:
 	@echo "  • Check the log file for details: $(AMZN_LOG_FILE)"
 	@echo ""
 
-amzn-setup: amzn-pre-setup amzn-base-packages amzn-install-stow amzn-stow amzn-dnf-packages amzn-fzf amzn-diff-so-fancy amzn-tmux-tpm amzn-tmux-plugins amzn-oh-my-zsh amzn-zsh-theme amzn-zsh-restore amzn-neovim amzn-chsh amzn-complete
+amzn-setup: amzn-pre-setup amzn-base-packages amzn-install-stow amzn-stow amzn-dnf-packages amzn-fzf amzn-diff-so-fancy amzn-tmux-tpm amzn-tmux-plugins amzn-oh-my-zsh amzn-zsh-theme amzn-zshrc amzn-neovim amzn-chsh amzn-complete

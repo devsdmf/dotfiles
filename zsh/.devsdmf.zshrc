@@ -102,10 +102,7 @@ command -v ncdu >/dev/null 2>&1 && alias du="ncdu --color dark -rr -x --exclude 
 
 ##### LOCAL OVERRIDES
 
-# sourcing post zshrc file
-if [[ -s $HOME/.zshrc.local.post ]]; then
-  source $HOME/.zshrc.local.post
-fi
+# machine-specific settings go in ~/.zshrc itself, after the line that sources this file
 
 # apps sometimes create ~/.profile on their own; it takes precedence over everything above
 if [[ -s $HOME/.profile ]]; then

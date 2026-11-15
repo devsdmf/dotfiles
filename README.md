@@ -58,18 +58,32 @@ make
 
 ```
 .
-├── alacritty/          # Alacritty terminal configuration
+├── alacritty-darwin/   # Alacritty terminal configuration (macOS)
+├── alacritty-debian/   # Alacritty terminal configuration (Debian/Ubuntu)
 ├── apt/                # APT package configurations
-├── darwin/             # macOS-specific configurations
 ├── gitconfig/          # Git configuration files
-├── homebrew/           # Homebrew configurations
-├── linux/              # Linux-specific configurations
+├── homebrew/           # Homebrew package list (.Brewfile)
 ├── nvim/               # Neovim configuration
+├── oh-my-zsh/          # Custom Oh My Zsh theme (symlinked into ~/.oh-my-zsh/custom/themes)
 ├── setup/              # Setup scripts and Makefiles
 ├── tmux/               # tmux configuration
 ├── vim/                # Vim configuration
-└── zsh/                # Zsh shell configuration
+└── zsh/                # Zsh shell configuration (single .zshrc for macOS and Linux)
 ```
+
+### Shell load order
+
+`.zshrc` is the only shell file. It loads, in order:
+
+1. `~/.zshrc.local.pre` (machine-specific, not versioned)
+2. Environment, Homebrew, Oh My Zsh, fzf and aliases
+3. `~/.zshrc.local.post` (machine-specific, not versioned)
+4. `~/.profile`, if an app created one (takes precedence over everything above)
+
+### Alacritty on macOS
+
+The Homebrew cask was disabled because Alacritty fails the Gatekeeper check. `make darwin` pauses and asks you to
+download it from the [releases page](https://github.com/alacritty/alacritty/releases) into `/Applications`.
 
 ## Customization
 
